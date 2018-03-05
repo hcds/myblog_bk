@@ -1,3 +1,9 @@
+---
+title: 阿里云DNS动态解析
+date: 2018-02-06 20:35:39
+tags: DNS
+---
+
 转载自[vincents.cn](https://www.vincents.cn/2017/03/27/aliyun-ddns/#python-sdk)
 
 想要通过域名直接访问路由器的公网IP，但是路由器的外网IP不是固定的，每次重启路由器都会改变。于是想要实现阿里云的DDNS(动态解析)。
@@ -120,6 +126,8 @@ def update_dns(dns_rr, dns_type, dns_value, dns_record_id, dns_ttl, dns_format):
 import json
 import os
 import re
+import subprocess
+import urllib.request
 from datetime import datetime
 
 from aliyunsdkcore import client
@@ -128,11 +136,11 @@ from aliyunsdkalidns.request.v20150109 import DescribeDomainRecordInfoRequest
 from aliyunsdkalidns.request.v20150109 import UpdateDomainRecordRequest
 
 # 阿里云 Access Key ID
-access_key_id = "xxxxx"
+access_key_id = "XXX"
 # 阿里云 Access Key Secret
-access_key_secret = "xxxxxxxx"
+access_key_secret = "XXXXXXX"
 # 阿里云 一级域名
-rc_domain = 'xxx.cn'
+rc_domain = 'aidashuai.top'
 # 返回内容格式
 rc_format = 'json'
 
@@ -144,8 +152,8 @@ def check_records(dns_domain):
     request = DescribeDomainRecordsRequest.DescribeDomainRecordsRequest()
     request.set_DomainName(dns_domain)
     request.set_accept_format(rc_format)
-    result = clt.do_action(request)
-    result = json.JSONDecoder().decode(result)
+    result = clt.do_action_with_exception(request)
+    result = json.JSONDecoder().decode(result.decode('utf-8'))
     return result
 
 """
@@ -156,8 +164,8 @@ def get_old_ip(record_id):
     request = DescribeDomainRecordInfoRequest.DescribeDomainRecordInfoRequest()
     request.set_RecordId(record_id)
     request.set_accept_format(rc_format)
-    result = clt.do_action(request)
-    result = json.JSONDecoder().decode(result)
+    result = clt.do_action_with_exception(request)
+    result = json.JSONDecoder().decode(result.decode('utf-8'))
     result = result['Value']
     return result
 
@@ -173,18 +181,19 @@ def update_dns(dns_rr, dns_type, dns_value, dns_record_id, dns_ttl, dns_format):
     request.set_RecordId(dns_record_id)
     request.set_TTL(dns_ttl)
     request.set_accept_format(dns_format)
-    result = clt.do_action(request)
+    result = clt.do_action_with_exception(request)
     return result
 
 """
 通过 ip.cn 获取当前主机的外网IP
 """
 def get_my_publick_ip():
-    get_ip_method = os.popen('curl -s ip.cn')
-    get_ip_responses = get_ip_method.readlines()[0]
+    url = urllib.request.urlopen("http://txt.go.sohu.com/ip/soip")
+    text = url.read()  
     get_ip_pattern = re.compile(r'\d+\.\d+\.\d+\.\d+')
-    get_ip_value = get_ip_pattern.findall(get_ip_responses)
-    return get_ip_value
+    ip = get_ip_pattern.findall(text.decode('utf-8'))
+    print("ip: ", ip[0])
+    return ip[0]
 
 def write_to_file(new_ip):
     time_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -198,29 +207,27 @@ if __name__ == '__main__':
     record_id = ""
     dns_records = check_records(rc_domain)
     for record in dns_records["DomainRecords"]["Record"]:
-        if record["Type"] == 'A' and record["RR"] == 'q':
+        if record["Type"] == 'A':
             record_id = record["RecordId"]
-            print "q.vincents.cn recordID is %s" % (record_id)
+            print("aidashuai.top recordID is {}".format(record_id))
             if record_id != "":
                 old_ip = get_old_ip(record_id)
-               
-    old_ip = get_old_ip(record_id)
-    # 获取主机当前的IP
-    now_ip = get_my_publick_ip()[0]
-    print "now host ip is %s, dns ip is %s" % (now_ip, old_ip)
+                # 获取主机当前的IP
+                now_ip = get_my_publick_ip()
+                print("now host ip is {}, dns ip is {}".format(now_ip, old_ip))
+                if old_ip == now_ip:
+                    print("The specified value of parameter Value is the same as old")
+                else:
+                    rc_rr = record["RR"]       # 解析记录
+                    rc_type = record["Type"]   # 记录类型, DDNS填写A记录
+                    rc_value = now_ip           # 新的解析记录值
+                    rc_record_id = record_id    # 记录ID
+                    rc_ttl = '600'              # 解析记录有效生存时间TTL,单位:秒
 
-    if old_ip == now_ip:
-        print "The specified value of parameter Value is the same as old"
-    else:
-        rc_rr = 'q'                 # 解析记录
-        rc_type = 'a'               # 记录类型, DDNS填写A记录
-        rc_value = now_ip           # 新的解析记录值
-        rc_record_id = record_id    # 记录ID
-        rc_ttl = '1000'             # 解析记录有效生存时间TTL,单位:秒
+                    print(update_dns(rc_rr, rc_type, rc_value, rc_record_id, rc_ttl, rc_format))
 
-        print update_dns(rc_rr, rc_type, rc_value, rc_record_id, rc_ttl, rc_format)
+                    write_to_file(now_ip)
 
-        write_to_file(now_ip)
 ~~~
 
 # crontab 定时运行

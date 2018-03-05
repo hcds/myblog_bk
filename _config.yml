@@ -3,10 +3,10 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
+title: 大帥の元宝
 subtitle:
 description:
-author: John Doe
+author: hcds
 language:
 timezone:
 
@@ -72,11 +72,34 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: landscape
+## theme: landscape
+theme: archer
+
+## 添加sidebar启用支持
+jsonContent:
+  meta: true
+  pages: false
+  posts:
+    title: true
+    date: true
+    path: true
+    text: false
+    raw: false
+    content: false
+    slug: false
+    updated: false
+    comments: false
+    link: false
+    permalink: true
+    excerpt: false
+    categories: true
+    tags: true
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: git@github.com:hcds/hcds.github.io.git
+  repo: 
+    github: git@github.com:hcds/hcds.github.io.git
+    coding: git@git.coding.net:hcds/hcds.git
   branch: master
