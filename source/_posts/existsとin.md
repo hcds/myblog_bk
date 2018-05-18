@@ -1,7 +1,7 @@
 ---
-title: oracle 
+title: exists in 
 date: 2018-02-22 16:37:39
-tags: 技術
+tags: [技術, 数据库]
 ---
 
 実行計画を読む３つのポイント
