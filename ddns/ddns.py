@@ -66,7 +66,7 @@ def update_dns(dns_rr, dns_type, dns_value, dns_record_id, dns_ttl, dns_format):
 通过 ip.cn 获取当前主机的外网IP
 """
 def get_my_publick_ip():
-    url = urllib.request.urlopen("http://txt.go.sohu.com/ip/soip")
+    url = urllib.request.urlopen("https://jsonip.com")
     text = url.read()  
     get_ip_pattern = re.compile(r'\d+\.\d+\.\d+\.\d+')
     ip = get_ip_pattern.findall(text.decode('utf-8'))
