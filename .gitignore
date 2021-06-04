@@ -6,3 +6,8 @@ node_modules/
 public/
 .deploy*/
 id_rsa_new*
+.tmp.drivedownload/3978656.driveupload
+*.driveupload
+ddns/nas_ddns.py
+.vscode/settings.json
+.vscode/launch.json
