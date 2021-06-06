@@ -14,11 +14,11 @@ from aliyunsdkalidns.request.v20150109 import DescribeDomainRecordInfoRequest
 from aliyunsdkalidns.request.v20150109 import UpdateDomainRecordRequest
 
 # 阿里云 Access Key ID
-access_key_id = "LTAIcNMI19raSUFK"
+access_key_id = ""
 # 阿里云 Access Key Secret
-access_key_secret = "oCxpVug3nENSgYhGqhN4jUoiOT9WvN"
+access_key_secret = ""
 # 阿里云 一级域名
-rc_domain = 'aidashuai.top'
+rc_domain = ''
 # 返回内容格式
 rc_format = 'json'
 
